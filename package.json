@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-	  "start": "some command to be run", // you need to add this line
+	"start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -27,6 +27,6 @@
     "request-promise": "^4.2.6",
     "sequelize": "^6.30.0",
     "upper-case": "^2.0.2"
-  },
+  }
   
 }
