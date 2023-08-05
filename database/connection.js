@@ -1,5 +1,6 @@
 const Sequelize = require('sequelize');
 const env = process.env.NODE_ENV || 'development';
+console.log(process.env.NODE_ENV);
 const config = require(__dirname + '/../config/config.json')[env];
 var moment = require('moment');
 const Op = Sequelize.Op;
