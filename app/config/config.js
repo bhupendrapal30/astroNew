@@ -1,0 +1,36 @@
+// config.js
+const dotenv = require('dotenv');
+dotenv.config();
+module.exports = {
+  endpoint: process.env.API_URL,
+  appBaseUrl: process.env.APP_BASE_URL,
+  masterKey: process.env.API_KEY,
+  port: process.env.PORT,
+  environment: process.env.NODE_ENV,
+  secretKey: process.env.JWT_SECRET,
+  secretKeyAdmin: process.env.JWT_SECRET_ADMIN,
+  awsAccessKeyId: process.env.ACCESS_KEY_ID,
+  awsSecretAccessKey: process.env.SECRET_ACCESS_KEY,
+  awsRegion: process.env.REGION,
+  awsACL: process.env.ACL,
+  awsBucketPath: process.env.AWS_BUCKET_PATH,
+  awsBucketAssetsPath: process.env.AWS_BUCKET_ASSETS_PATH,
+  awsBucketAccessPath: process.env.AWS_BUCKET_ACCESS_PATH,
+  awsBucketResearchPath: process.env.AWS_BUCKET_RESEARCH_PATH,
+  defaultMailDriver: process.env.DEFAULT_MAIL_DRIVER,
+  mailtrapHost: process.env.MAILTRAP_HOST,
+  mailtrapPort: process.env.MAILTRAP_PORT,
+  mailtrapSecure: process.env.MAILTRAP_SECURE,
+  mailtrapUsername: process.env.MAILTRAP_USERNAME,
+  mailtrapPassword: process.env.MAILTRAP_PASSWORD,
+  awsMailHost: process.env.AWS_MAIL_HOST,
+  awsMailPort: process.env.AWS_MAIL_PORT,
+  awsMailSecure: process.env.AWS_MAIL_SECURE,
+  awsMailUsername: process.env.AWS_MAIL_USERNAME,
+  awsMailPassword: process.env.AWS_MAIL_PASSWORD,
+  smsHost: process.env.SMS_HOST,
+  smsPort: process.env.SMS_PORT,
+  smsPath: process.env.SMS_PATH,
+  uploadDir: process.env.FILE_UPLOAD_DIR,
+  mainApiBaseUrl: process.env.MAIN_API_BASE_URL
+};
