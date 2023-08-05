@@ -1,19 +1,19 @@
 {
   "development": {
-"username": "root",
-"password": "",
-"database": "astro",
-"host": "localhost",
+"username": "vooktech_astro",
+"password": "Asdf@3214",
+"database": "vooktech_astro",
+"host": "204.11.58.86",
     "dialect": "mysql",
     "logging": false,
     "port": 3306
     
   },
   "test": {
-   "username": "winforex",
-  "password": "Server@123",
-  "database": "tpil",
-  "host": "65.0.235.45",
+   "username": "vooktech_astro",
+  "password": "Asdf@3214",
+  "database": "vooktech_astro",
+  "host": "204.11.58.86",
     "dialect": "mysql",
     "logging": false
   }
