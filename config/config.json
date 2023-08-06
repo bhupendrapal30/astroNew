@@ -5,8 +5,8 @@
 "database": "vooktech_astro",
 "host": "204.11.58.86",
     "dialect": "mysql",
-    "logging": false,
-    "port":3036
+    "logging": false
+    
     
     
   },
@@ -16,8 +16,8 @@
 "database": "vooktech_astro",
 "host": "204.11.58.86",
     "dialect": "mysql",
-    "logging": false,
-    "port":3036
+    "logging": false
+    
   }
   
 }
