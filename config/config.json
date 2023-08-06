@@ -5,18 +5,19 @@
 "database": "vooktech_astro",
 "host": "204.11.58.86",
     "dialect": "mysql",
-    "logging": false
+    "logging": false,
+    "port":3036
     
     
   },
   "production": {
-   "username": "root",
-   "password": "QtjfMK23Faq4GO2xdA43",
-   "database": "railway",
-   "host": "containers-us-west-162.railway.app",
+   "username": "vooktech_astro",
+"password": "Asdf@3214",
+"database": "vooktech_astro",
+"host": "204.11.58.86",
     "dialect": "mysql",
     "logging": false,
-    "port":5950
+    "port":3036
   }
   
 }
