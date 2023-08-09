@@ -1,6 +1,6 @@
 //var models  =  require('../../../../models');
 //var User = models.userdetails;
-//require("dotenv").config();
+require("dotenv").config();
 var md5 = require('md5');
 var jwt = require('jsonwebtoken');
 const env = require('../../../config/config');
@@ -37,6 +37,63 @@ function removeTags(str) {
     // the input string. Replacing the identified
     // HTML tag with a null string.
     return str.replace( /(<([^>]+)>)/ig, '');
+}
+
+
+sendmessage = async (data,tokenData) => {
+  console.log(data);
+  var ph = "+91"+data['mobileNo'];
+  var orderId = "Order"+data['user_id'];
+
+  let PdfData = await masters.getSingleRecord('pdffile','*', {user_id:data['user_id'],catId:tokenData['catId']});
+  
+  
+  let headers = {
+        'Content-Type': 'application/json',
+        'authorization': tokenData.token,
+        'Cache-Control': 'no-cache'
+        };
+      
+      var options = {
+          method: 'POST',
+          uri: 'https://apis.rmlconnect.net/wba/v1/messages',
+          headers:headers,
+          json:true
+      };
+     
+      options.body = {
+    "phone": ph,
+    "enable_acculync": true,
+    "media": {
+        "type": "media_template",
+        "template_name": "download_lal_kitab",
+        "lang_code": "en",
+        "body": [
+            {
+                "text": data['name']
+            },
+            {
+                "text": "LAL KITAB AMRIT 5 YEARS"
+            },
+            {
+                "text": orderId
+            },
+            {
+                "text":PdfData['pdfpath']
+            },
+            {
+                "text": " "
+            }
+        ]
+    }
+}
+
+     var resData='';
+     let response = await httprequest(options).then((result)=>{
+      }).catch(function (err){
+        console.log(` ERROR =`,err.message);
+      });
+
 }
 module.exports = {
 	addUser: async function(req, res) {  
@@ -95,19 +152,19 @@ module.exports = {
           headers:headers,
           json:true
       };
-       
+       $jsnCat = catId==1?'date':catId;
       options.body ={"langitutde":userData['lng'],"gender":"male","kundalitype":"kp","birthDate":{"day":dob[2],"month":dob[1] ,"year":dob[0]},
       "timezone":"5.5","language":"1","product":"143","latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,"pob":{"placeName":userData['city'],"StateName":userData['stateName'],"countryName":"India","latitude":userData['lng'],"longitude":userData['lat'],"gmtoffset":"5.5","dstoffset":"5.5","timezone":"5.5"},"birthTime":{"hour":"8","minute":"15"},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:03","showpdf"
-:false,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},"acharyaid":26083,"btntype":"viewkundali","finalyear":31,"message":"","generateKundaliProduct":"","category":catId};
+:false,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},"acharyaid":26083,"btntype":"viewkundali","finalyear":31,"message":"","generateKundaliProduct":"","category":$jsnCat};
      var result='';
      var resData='';
-    let response = await httprequest(options).then((result)=>{
+     let response = await httprequest(options).then((result)=>{
          resData =result['data']['questions1']['questions']; 
          console.log(result);
-    }).catch(function (err){
+     }).catch(function (err){
         console.log(` ERROR =`,err.message);
         return err;
-    });
+     });
      
      if(resData){
       i=0;
@@ -147,36 +204,41 @@ module.exports = {
     //         jointype: 'LEFT'
     //     }
     // ];
+   let userId =req.body.user_id;
    let catId =req.body.catId;
    var finalData = {};
     var where = {};
     where['catId'] = catId;
+    where['userid'] = userId;
     var extra_whr = '';
     var limit_arr = '';
     var orderby = 'id ASC';
     var columns = ['id','qid','ques'];
-    var result = await masters.get_definecol_bytbl_cond_sorting(columns,'questions', where, orderby);
+    var result = await masters.get_definecol_bytbl_cond_sorting(columns,'questionans', where, orderby);
+
     return res.status(200).json({ status: true, message: 'Questions List fetched successfully', data: result, statusCode: 200});
 
     },
     
     questionsList:async function(req,res){
-      let questionData =req.body.ques.questions;
+      let questionData =req.body.ques;
       let catData =req.body.catIds;
+      let userId =req.body.user_id;
       var finalData = {};
       var where ={};
       var whereIn = questionData;
      // where['deletestatus'] = 0;
       var groupby = 'catName';
       var columns = ['catId','catName'];
-      var col = ['id','qid','ques','catName'];
-      var response = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catData,groupby );
+      var col = ['id','qid','ques','catName','userid'];
+      var response = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catData,userId,groupby );
       console.log(response);
       finalData.data = response; 
       await Promise.all(response.map(async (value) => {
         where['catId']=value.catId;
+        // where['userid']=userId;
         //this.questionsData(req,res);
-         var qesresponse = await masters.get_definecol_bytbl_groupbynew(col,'questionans', whereIn,where, groupby );
+         var qesresponse = await masters.get_definecol_bytbl_groupbynew(col,'questionans', whereIn,where,userId,groupby );
          Object.assign(value, {ques: qesresponse});
       }));
 
@@ -187,28 +249,28 @@ module.exports = {
     },
 
     answerList:async function(req,res){
-      let questionData =req.body.ques.questions;
+      let questionData =req.body.ques;
       let catData =req.body.catIds;
-      console.log(catData);
+      let userId =req.body.user_id;
       var finalData = {};
       var where ={};
       var whereIn = questionData;
      // where['deletestatus'] = 0;
       var groupby = 'catName';
       var columns = ['catId','catName'];
-      var col = ['id','qid','ques','ans','catName'];
-      var response = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catData,groupby );
+      var col = ['id','qid','ques','ans','catName','userid'];
+      var response = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catData,userId,groupby );
+      console.log(response);
       finalData.data = response; 
       await Promise.all(response.map(async (value) => {
         where['catId']=value.catId;
+        // where['userid']=userId;
         //this.questionsData(req,res);
-         var qesresponse = await masters.get_definecol_bytbl_groupbynew(col,'questionans', whereIn,where, groupby );
+         var qesresponse = await masters.get_definecol_bytbl_groupbynew(col,'questionans', whereIn,where,userId,groupby );
          Object.assign(value, {ques: qesresponse});
       }));
 
-     
-      
-      return res.status(200).json({status: true, message: 'Answer list fetched successfully', data: response});
+     return res.status(200).json({status: true, message: 'Answer list fetched successfully', data: response});
 
     },
     pdflist: async function(req,res){
@@ -241,11 +303,12 @@ module.exports = {
         let userData = await masters.getSingleRecord('users','*', {user_id:userId});
         let catData = await masters.getSingleRecord('pdffile','*', {user_id:userId,catId:catId});
         let dob = userData['dob'].split("-");
+        let time = userData['tob'].split(":");
 
         var jsonData= {"langitutde":userData['lng'],"gender":"male","kundalitype":"kp","birthDate":{"day":dob[2],"month":dob[1] ,"year":dob[0]},
         "timezone":"5.5","language":"1","product":"143","latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,
         "pob":{"placeName":userData['city'],"StateName":userData['stateName'],"countryName":"India","latitude":userData['lng'],"longitude":userData['lat'],"gmtoffset":"5.5","dstoffset":"5.5","timezone":"5.5"},
-        "birthTime":{"hour":"8","minute":"15"},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:11","showpdf":true,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},
+        "birthTime":{"hour":time[0],"minute":time[1]},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:11","showpdf":true,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},
         "acharyaid":26083,"btntype":"viewkundali","finalyear":31,
         "message":"",
          "generateKundaliProduct":"",
@@ -318,7 +381,7 @@ module.exports = {
        data['order_log']='';
        var ins = await masters.common_insert('ordertable', data);
        return res.status(200).json({ status: true, message: 'FAILED', data:'', statusCode: 200});
-    }   console.log(order);
+    }   
         data['amount']=amount;
         data['user_id']=userId;
         data['order_id']=order['id']
@@ -337,6 +400,10 @@ paymentVerify: async function(req,res){
   let amount =req.body.amount;
   let userId =req.body.user_id;
   let orderId =req.body.order_id;
+  let catId =req.body.catId;
+  let wptoken =req.body.whtoken;
+
+  let userData = await masters.getSingleRecord('users','*', {user_id:userId});
   let URL = 'https://rzp_test_PX2vJ9ubej1UGc:veloXiNLdQmcrfFqJUDxFeUN@api.razorpay.com/v1/payments/'+paymentId+'/capture';
 
         var options = {
@@ -352,20 +419,20 @@ paymentVerify: async function(req,res){
           var resultData ='';
           let response = await httprequest(options).then((result)=>{
              resultData =result;
-              
-             
-          }).catch(function (err){
+           }).catch(function (err){
                
           });
 
           if(resultData) {
               data['amount']=amount;
               data['user_id']=userId;
-              data['order_id']=orderId;
+              data['order_id']="Order"+userId;
               data['payment_id']=resultData.id;
               data['status']=1;
               data['payment_log']=resultData;
               var ins = await masters.common_insert('payments', data);
+              let tokenData = {token:wptoken,catId:catId};
+              sendmessage(userData,tokenData);
              return res.status(200).json({ status: true, message: 'success', data: resultData, statusCode: 200});
           }else {
 

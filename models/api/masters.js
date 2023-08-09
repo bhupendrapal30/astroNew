@@ -234,9 +234,9 @@ var masters = {
 
         return response;
     },
-    get_definecol_bytbl_groupby: async function(col_fields, table, where,catData,group_by) {
+    get_definecol_bytbl_groupby: async function(col_fields, table, where,catData,userId,group_by) {
         var response = [];
-        var query = knex(table).select(col_fields).whereIn('qid',where).whereIn('catId',catData);
+        var query = knex(table).select(col_fields).whereIn('qid',where).whereIn('catId',catData).where('userid',userId);
         query.groupBy(knex.raw(group_by));
         await query.then((result) => {           
             response = (result.length > 0) ? result: false;
@@ -244,9 +244,10 @@ var masters = {
 
         return response;
     },
-    get_definecol_bytbl_groupbynew: async function(col_fields, table, whereIn,where,group_by) {
+    get_definecol_bytbl_groupbynew: async function(col_fields, table, whereIn,where,userId,group_by) {
+        console.log(where);
         var response = [];
-        var query = knex(table).select(col_fields).whereIn('qid',whereIn).where(where);;
+        var query = knex(table).select(col_fields).whereIn('qid',whereIn).where('userid',userId).where(where);
         await query.then((result) => { 
             response = (result.length > 0) ? result: false;
           
