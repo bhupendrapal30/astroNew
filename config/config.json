@@ -1,9 +1,9 @@
 {
   "development": {
-"username": "vooktech_astro",
-"password": "Asdf@3214",
-"database": "vooktech_astro",
-"host": "204.11.58.86",
+"username": "root",
+"password": "",
+"database": "astro",
+"host": "localhost",
     "dialect": "mysql",
     "logging": false
     
@@ -11,10 +11,10 @@
     
   },
   "production": {
-   "username": "vooktech_astro",
-"password": "Asdf@3214",
-"database": "vooktech_astro",
-"host": "204.11.58.86",
+   "username": "root",
+"password": "",
+"database": "astro",
+"host": "localhost",
     "dialect": "mysql",
     "logging": false
     
