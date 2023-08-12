@@ -64,7 +64,7 @@ var apiModel = {
         await query.then((result) => {
             response = result;           
         });
-          
+       
   		return response;
 	}
 }

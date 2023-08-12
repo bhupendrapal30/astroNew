@@ -35,6 +35,9 @@ router.post('/pdfinsert',userController.pdfDataInsert);
 router.post('/questionsinsert',userController.questionsInsert);
 router.post('/order',userController.order);
 router.post('/capture',userController.paymentVerify);
+router.post('/orderdeatils',userController.orderdeatils);
+router.post('/questionspdf',userController.questionsPdf);
+router.post('/getcategory',userController.getCategory);
 
 
 module.exports = router;

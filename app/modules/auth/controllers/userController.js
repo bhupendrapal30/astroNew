@@ -12,11 +12,12 @@ var moment = require('moment');
 var httprequest = require('request-promise');
 const Razorpay = require("razorpay");
 const instance = new Razorpay({
-    key_id: 'rzp_test_PX2vJ9ubej1UGc',
-    key_secret: 'veloXiNLdQmcrfFqJUDxFeUN',
+    key_id: process.env.ROZAR_API_KEY,
+    key_secret: process.env.ROZAR_API_SECRET,
 });
-var PDFURL ="https://astrooffice.in:3300/api/horoscop/preduction";
-var questionURL="https://astrooffice.in:3300/api/callcenter";
+var PDFURL =process.env.PDFURL;
+var questionURL=process.env.QUESTIONLISTURL;
+var questionpdfURL=process.env.QUESTIONPDFURL;
 
 var storage =   multer.diskStorage({  
   destination: function (req, file, callback) {  
@@ -40,13 +41,16 @@ function removeTags(str) {
 }
 
 
-sendmessage = async (data,tokenData) => {
-  console.log(data);
+sendmessage = async (data,tokenData,type) => {
+  
   var ph = "+91"+data['mobileNo'];
   var orderId = "Order"+data['user_id'];
-
-  let PdfData = await masters.getSingleRecord('pdffile','*', {user_id:data['user_id'],catId:tokenData['catId']});
-  
+  if(type =='q'){ 
+   var pdffile=tokenData['pdffile'];
+  }else{
+   let PdfData = await masters.getSingleRecord('pdffile','*', {user_id:data['user_id'],catId:tokenData['catId']});
+   var pdffile = PdfData['pdfpath'];
+  }
   
   let headers = {
         'Content-Type': 'application/json',
@@ -79,7 +83,7 @@ sendmessage = async (data,tokenData) => {
                 "text": orderId
             },
             {
-                "text":PdfData['pdfpath']
+                "text":pdffile
             },
             {
                 "text": " "
@@ -91,13 +95,13 @@ sendmessage = async (data,tokenData) => {
      var resData='';
      let response = await httprequest(options).then((result)=>{
       }).catch(function (err){
-        console.log(` ERROR =`,err.message);
+       res.status(200).json({status: true,data:'', message: err});
       });
 
 }
 module.exports = {
 	addUser: async function(req, res) {  
-       console.log(req.body); 
+       
        var mobileNo =req.body.mobileNo; 
        var atype =req.body.atype;  
        var latlong = req.body.latlong;
@@ -140,6 +144,7 @@ module.exports = {
 
         }else{
         let dob = userData['dob'].split("-");
+        let time = userData['tob'].split(":");
         let headers = {
         'Content-Type': 'application/json',
         'authorization': 'Bearer ' + token,
@@ -154,15 +159,15 @@ module.exports = {
       };
        $jsnCat = catId==1?'date':catId;
       options.body ={"langitutde":userData['lng'],"gender":"male","kundalitype":"kp","birthDate":{"day":dob[2],"month":dob[1] ,"year":dob[0]},
-      "timezone":"5.5","language":"1","product":"143","latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,"pob":{"placeName":userData['city'],"StateName":userData['stateName'],"countryName":"India","latitude":userData['lng'],"longitude":userData['lat'],"gmtoffset":"5.5","dstoffset":"5.5","timezone":"5.5"},"birthTime":{"hour":"8","minute":"15"},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:03","showpdf"
+      "timezone":"5.5","language":"1","product":"143","latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,"pob":{"placeName":userData['city'],"StateName":userData['stateName'],"countryName":"India","latitude":userData['lng'],"longitude":userData['lat'],"gmtoffset":"5.5","dstoffset":"5.5","timezone":"5.5"},"birthTime":{"hour":time[0],"minute":time[1]},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:03","showpdf"
 :false,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},"acharyaid":26083,"btntype":"viewkundali","finalyear":31,"message":"","generateKundaliProduct":"","category":$jsnCat};
      var result='';
      var resData='';
      let response = await httprequest(options).then((result)=>{
          resData =result['data']['questions1']['questions']; 
-         console.log(result);
+         
      }).catch(function (err){
-        console.log(` ERROR =`,err.message);
+         res.status(200).json({status: true, data:'',message: err});
         return err;
      });
      
@@ -232,7 +237,6 @@ module.exports = {
       var columns = ['catId','catName'];
       var col = ['id','qid','ques','catName','userid'];
       var response = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catData,userId,groupby );
-      console.log(response);
       finalData.data = response; 
       await Promise.all(response.map(async (value) => {
         where['catId']=value.catId;
@@ -260,7 +264,6 @@ module.exports = {
       var columns = ['catId','catName'];
       var col = ['id','qid','ques','ans','catName','userid'];
       var response = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catData,userId,groupby );
-      console.log(response);
       finalData.data = response; 
       await Promise.all(response.map(async (value) => {
         where['catId']=value.catId;
@@ -432,7 +435,9 @@ paymentVerify: async function(req,res){
               data['payment_log']=resultData;
               var ins = await masters.common_insert('payments', data);
               let tokenData = {token:wptoken,catId:catId};
-              sendmessage(userData,tokenData);
+              if(userData['atype']=='pdf'){
+               sendmessage(userData,tokenData,'p');
+              }
              return res.status(200).json({ status: true, message: 'success', data: resultData, statusCode: 200});
           }else {
 
@@ -450,6 +455,88 @@ paymentVerify: async function(req,res){
 
   
 },
+orderdeatils: async function(req,res){
+     let userId =req.body.user_id;
+      var joins = [
+        {
+            table: 'payments as payments',
+            condition: ['users.user_id', '=', 'payments.user_id'],
+            jointype: 'LEFT'
+        }
+    ];
+    var orderby = '';
+    var where = {'users.user_id':userId};
+    var extra_whr = '';
+    var limit_arr = '';
+    var columns = ['users.user_id ', 'users.name','users.dob','users.tob','users.mobileNo','users.city','users.stateName','users.countryName','payments.order_id','payments.order_id','payments.amount'];
+    var limit_arr = {};
+    var result = await apiModel.get_joins_records('users', columns, joins, where, orderby, extra_whr, limit_arr);
+    return res.status(200).json({ status: true, message: 'Orders details successfully', data: result, statusCode: 200});
+
+    },
+questionsPdf: async function(req, res) {  
+        let URL = questionpdfURL;
+        let catId =req.body.catIds;
+        let userId =req.body.user_id;
+        let questionData =req.body.ques;
+        let token =req.body.token;
+        let whtoken =req.body.whtoken;
+        let userData = await masters.getSingleRecord('users','*', {user_id:userId});
+        //let catData = await masters.getSingleRecord('category','*', {apiId:catId});
+        var finalData = {};
+        var where ={};
+        let dob = userData['dob'].split("-");
+        let time = userData['tob'].split(":");
+        var whereIn = questionData;
+     // where['deletestatus'] = 0;
+        var groupby = 'id';
+        var columns = ['aid as id','qid','ques as que','ans','userid'];
+      // var col = ['id','qid','ques','catName','userid'];
+     var questionListData = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catId,userId,groupby);
+      let headers = {
+        'Content-Type': 'application/json',
+        'authorization': 'Bearer ' +token,
+        'Cache-Control': 'no-cache'
+        };
+      
+      var options = {
+          method: 'POST',
+          uri: URL,
+          headers:headers,
+          json:true
+      };
+    
+      options.body ={
+       "userdetails":{"langitutde":userData['lng'],"gender":"male","kundalitype":"kp","birthDate":{"day":dob[2],"month":dob[1] ,"year":dob[0]},
+      "timezone":"5.5","language":"1","product":"143","latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,"pob":{"placeName":userData['city'],"StateName":userData['stateName'],"countryName":"India","latitude":userData['lng'],"longitude":userData['lat'],"gmtoffset":"5.5","dstoffset":"5.5","timezone":"5.5"},"birthTime":{"hour":time[0],"minute":time[1]},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:03","showpdf"
+:false,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},"name":userData['name'],"acharyaid":26083,"btntype":"viewkundali","finalyear":31,"message":"","generateKundaliProduct":"","mobile":userData['mobileNo'],"email":"","relation":"Your Self","source":"bhagwancheck1","userId":250},"questions":questionListData };
+     var result='';
+     var resData='';
+     let response = await httprequest(options).then((result)=>{
+         resData =result;
+         
+     }).catch(function (err){
+      return res.status(200).json({ status: true,messagestatus:false, message: 'error in api ', data: '', statusCode: 200});
+     });
+     if(resData){
+        let pdFile=resData['data']['pdfurl'];
+        let tokenData = {token:whtoken,pdffile:pdFile};
+        sendmessage(userData,tokenData,'q');
+        return res.status(200).json({ status: true,messagestatus:true, message: 'fetch result successfully', data: resData, statusCode: 200});
+     
+     }
+     
+    },
+    getCategory :async function(req, res) {  
+         let catId =req.body.catId;
+         let catData = await masters.getSingleRecord('category','*', {apiId:catId});
+         if(catData){
+          return res.status(200).json({ status: true,messagestatus:true, message: 'fetch result successfully', data: catData, statusCode: 200});
+          }else{
+            return res.status(200).json({ status: true,messagestatus:false, message: 'error', data:'', statusCode: 200});
+           }
+
+    },
     
     
 
