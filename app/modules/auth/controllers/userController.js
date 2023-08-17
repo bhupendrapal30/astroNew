@@ -157,7 +157,15 @@ module.exports = {
           headers:headers,
           json:true
       };
-       $jsnCat = catId==1?'date':catId;
+     var  $jsnCat = '';
+      if(catId==1){
+        $jsnCat='date';
+      }else if(catId==75){
+         $jsnCat=66;
+      }else{
+        $jsnCat=catId;
+      }
+       
       options.body ={"langitutde":userData['lng'],"gender":"male","kundalitype":"kp","birthDate":{"day":dob[2],"month":dob[1] ,"year":dob[0]},
       "timezone":"5.5","language":"1","product":"143","latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,"pob":{"placeName":userData['city'],"StateName":userData['stateName'],"countryName":"India","latitude":userData['lng'],"longitude":userData['lat'],"gmtoffset":"5.5","dstoffset":"5.5","timezone":"5.5"},"birthTime":{"hour":time[0],"minute":time[1]},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:03","showpdf"
 :false,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},"acharyaid":26083,"btntype":"viewkundali","finalyear":31,"message":"","generateKundaliProduct":"","category":$jsnCat};
