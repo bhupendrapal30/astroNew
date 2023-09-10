@@ -77,7 +77,7 @@ sendmessage = async (data,tokenData,type) => {
                 "text": data['name']
             },
             {
-                "text": "LAL KITAB AMRIT 5 YEARS"
+                "text": "LAL KITAB AMRIT"
             },
             {
                 "text": orderId
@@ -190,6 +190,7 @@ module.exports = {
             pdata['ques']=removeTags(que['que']);
             pdata['ans']=que['ans'];
             pdata['catId']=catId;
+            pdata['price']=100;
             pdata['userid']=userId;
             pdata['catName']=catData['Name'];
             var ins = await masters.common_insert('questionans', pdata);
@@ -243,7 +244,7 @@ module.exports = {
      // where['deletestatus'] = 0;
       var groupby = 'catName';
       var columns = ['catId','catName'];
-      var col = ['id','qid','ques','catName','userid'];
+      var col = ['id','qid','ques','catName','userid','price'];
       var response = await masters.get_definecol_bytbl_groupby(columns,'questionans', whereIn,catData,userId,groupby );
       finalData.data = response; 
       await Promise.all(response.map(async (value) => {
@@ -317,7 +318,7 @@ module.exports = {
         let time = userData['tob'].split(":");
 
         var jsonData= {"langitutde":userData['lng'],"gender":"male","kundalitype":"kp","birthDate":{"day":dob[2],"month":dob[1] ,"year":dob[0]},
-        "timezone":"5.5","language":"1","product":"143","latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,
+        "timezone":"5.5","language":"1","product":catId,"latitude":userData['lat'],"name":userData['name'],"dst":false,"generate":true,
         "pob":{"placeName":userData['city'],"StateName":userData['stateName'],"countryName":"India","latitude":userData['lng'],"longitude":userData['lat'],"gmtoffset":"5.5","dstoffset":"5.5","timezone":"5.5"},
         "birthTime":{"hour":time[0],"minute":time[1]},"rotatekundali":"1","currentDate":moment(new Date()).format('DD/MM/YYYY'),"currentTime":"14:11","showpdf":true,"showgochar":false,"ageRange":{"fromAge":"","toAge":""},
         "acharyaid":26083,"btntype":"viewkundali","finalyear":31,
@@ -545,6 +546,45 @@ questionsPdf: async function(req, res) {
            }
 
     },
+    getQuesCategory :async function(req, res) {  
+
+      
+        var finalData = {};
+        var where = {};
+        where['qtype'] = 'q';
+        var extra_whr = '';
+        var limit_arr = '';
+        var orderby = 'id ASC';
+        var columns = ['id','qid','ques'];
+        var result = await masters.get_definecol_bytbl_cond_sorting('*','category', where, orderby);
+       
+            if(result){
+                   return res.status(200).json({ status: true, message: 'Category fetched successfully', data: result, statusCode: 200});
+             }else{
+                 return res.status(200).json({ status: true,messagestatus:false, message: 'error', data:'', statusCode: 200});
+            }
+
+        },
+
+    getPdfCategory :async function(req, res) {  
+
+      
+        var finalData = {};
+        var where = {};
+        where['qtype'] = 'p';
+        var extra_whr = '';
+        var limit_arr = '';
+        var orderby = 'id ASC';
+        var columns = ['id','qid','ques'];
+        var result = await masters.get_definecol_bytbl_cond_sorting('*','category', where, orderby);
+       
+            if(result){
+                   return res.status(200).json({ status: true, message: 'Category fetched successfully', data: result, statusCode: 200});
+             }else{
+                 return res.status(200).json({ status: true,messagestatus:false, message: 'error', data:'', statusCode: 200});
+            }
+
+        },
     
     
 

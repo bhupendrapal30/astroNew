@@ -38,6 +38,8 @@ router.post('/capture',userController.paymentVerify);
 router.post('/orderdeatils',userController.orderdeatils);
 router.post('/questionspdf',userController.questionsPdf);
 router.post('/getcategory',userController.getCategory);
+router.post('/getQuesCategory',userController.getQuesCategory);
+router.post('/getPdfCategory',userController.getPdfCategory);
 
 
 module.exports = router;
